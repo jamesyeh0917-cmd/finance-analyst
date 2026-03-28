@@ -364,7 +364,7 @@ if __name__ == "__main__":
     report = generate_markdown_report(results)
     
     # 保存
-    outputs_dir = Path('/mnt/user-data/outputs')
+    outputs_dir = Path('outputs')
     outputs_dir.mkdir(parents=True, exist_ok=True)
     
     with open(outputs_dir / 'Phase3.2_概率風險評估報告.md', 'w', encoding='utf-8') as f:
