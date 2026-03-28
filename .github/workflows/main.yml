@@ -110,7 +110,7 @@ jobs:
       
       # 保存工件
       - name: 💾 上傳分析報告
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: analysis-reports
