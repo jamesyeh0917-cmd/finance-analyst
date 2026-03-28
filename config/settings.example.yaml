@@ -1,0 +1,221 @@
+# ===========================================
+# Finance Analyst 全域設定範本
+# ===========================================
+# 使用方法：
+# 1. 複製此檔案為 config/settings.yaml
+# 2. 填入你的設定和 API Key
+# 3. settings.yaml 會被 .gitignore 忽略（安全！）
+
+# ==========================================
+# 全域預設規則
+# ==========================================
+global:
+  # 預設停損點（百分比）
+  default_stop_loss: -15
+  
+  # 預設停利點（百分比）
+  default_take_profit_1: 10
+  default_take_profit_2: 20
+  
+  # 單一持股最大配置百分比
+  default_max_allocation: 20
+  
+  # 分析時間框架（月）
+  analysis_timeframe: 12
+
+# ==========================================
+# 股票分組規則
+# ==========================================
+# 根據風險等級分組，每組有不同的規則
+# 個別股票可以覆蓋這些規則
+
+stock_groups:
+  taiwan_tech:
+    description: "台灣科技股"
+    risk_level: "medium"
+    stop_loss: -12
+    take_profit_1: 12
+    take_profit_2: 25
+    max_allocation: 25
+    
+  us_mega_cap:
+    description: "美股大型股（如 Apple、Microsoft）"
+    risk_level: "low"
+    stop_loss: -20
+    take_profit_1: 8
+    take_profit_2: 15
+    max_allocation: 15
+    
+  us_growth:
+    description: "美股成長股（如 NVIDIA、TSLA）"
+    risk_level: "medium-high"
+    stop_loss: -15
+    take_profit_1: 15
+    take_profit_2: 30
+    max_allocation: 20
+    
+  emerging_markets:
+    description: "新興市場"
+    risk_level: "high"
+    stop_loss: -10
+    take_profit_1: 15
+    take_profit_2: 30
+    max_allocation: 10
+
+# ==========================================
+# 個別股票規則（覆蓋分組規則）
+# ==========================================
+# 為特定股票設定自訂的監控標準
+# 這些規則會覆蓋上面 stock_groups 的規則
+
+stocks:
+  TSMC_2330:
+    name: "台積電"
+    market: "taiwan"
+    exchange: "TWSE"
+    group: "taiwan_tech"
+    
+    # 個別停損點（覆蓋分組的 -12%）
+    custom_stop_loss: -10
+    custom_take_profit_1: 12
+    custom_take_profit_2: 25
+    
+    # 關鍵事件（用於監控）
+    critical_events:
+      - date: "2025-04-20"
+        event: "Q1 財報公佈"
+        importance: "high"
+      - date: "2025-06-15"
+        event: "投資者會議"
+        importance: "medium"
+    
+    # 風險因素（監控指標）
+    risk_factors:
+      - "taiwan_strait_tension"
+      - "us_export_controls"
+      - "competition_from_samsung"
+  
+  NVDA:
+    name: "NVIDIA"
+    market: "us"
+    exchange: "NASDAQ"
+    group: "us_growth"
+    
+    custom_stop_loss: -15
+    custom_take_profit_1: 15
+    custom_take_profit_2: 35
+    
+    critical_events:
+      - date: "2025-05-22"
+        event: "GTC 開發者大會"
+        importance: "high"
+      - date: "2025-06-01"
+        event: "Q1 財報"
+        importance: "high"
+    
+    risk_factors:
+      - "ai_hype_bubble"
+      - "supply_chain_risk"
+      - "competition_amd"
+  
+  BRK_B:
+    name: "柏克夏·海瑟威 B 股"
+    market: "us"
+    exchange: "NYSE"
+    group: "us_mega_cap"
+    
+    # 大型價值股，規則較保守
+    custom_stop_loss: -20
+    custom_take_profit_1: 5
+    custom_take_profit_2: 10
+
+# ==========================================
+# 分析參數
+# ==========================================
+analysis:
+  technical:
+    # 使用的技術指標
+    use_indicators:
+      - rsi
+      - macd
+      - bollinger_bands
+      - moving_averages
+      - volume
+    
+    # RSI 期數
+    rsi_period: 14
+    
+    # MACD 參數
+    macd_fast: 12
+    macd_slow: 26
+    macd_signal: 9
+  
+  fundamental:
+    # 是否與同業對比
+    compare_with_peers: true
+    
+    # 對比的競爭對手數量
+    peer_count: 5
+  
+  probability:
+    # 蒙特卡洛模擬次數
+    simulation_count: 10000
+    
+    # 參考多少年的歷史數據
+    lookback_years: 10
+    
+    # 信心水準（95% 表示 95% 的區間）
+    confidence_level: 0.95
+
+# ==========================================
+# API 和數據來源
+# ==========================================
+api_keys:
+  # Claude API Key（從環境變數讀取更安全）
+  # 設定方法 1（環境變數）：
+  #   export ANTHROPIC_API_KEY="sk-proj-xxx"
+  #   然後程式讀取 os.getenv('ANTHROPIC_API_KEY')
+  # 
+  # 設定方法 2（填在這裡，但要確保 .gitignore 忽略此檔案）：
+  anthropic_api_key: "your-api-key-here"
+
+data_sources:
+  market_data:
+    provider: "yahoo_finance"  # 或 "alpha_vantage"
+    update_frequency: "daily"
+  
+  news:
+    provider: "newsapi"        # 或其他新聞 API
+    sentiment_weight: 0.3      # 新聞情緒的權重（0-1）
+
+# ==========================================
+# 報告設定
+# ==========================================
+reporting:
+  # 是否生成日報
+  daily_summary: true
+  
+  # 日報時間（台灣時間）
+  daily_summary_time: "16:00"
+  
+  # 報告包含的內容
+  include_in_report:
+    - technical_analysis
+    - fundamental_changes
+    - sentiment_change
+    - probability_update
+    - risk_assessment
+
+# ==========================================
+# 日誌設定
+# ==========================================
+logging:
+  # 日誌等級：DEBUG / INFO / WARNING / ERROR
+  level: "INFO"
+  
+  # 是否保存日誌
+  save_logs: true
+  
+  # 日誌輪轉方式
+  log_rotation: "daily"
+

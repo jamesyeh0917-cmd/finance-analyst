@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Sensitive
+.env
+.env.local
+.env.*.local
+config/settings.yaml
+config/settings.json
+config/secrets.yaml
+config/credentials.json
+config/api_keys.json
+
+# Testing and logs
+.pytest_cache/
+.coverage
+htmlcov/
+test_results/
+*.log
+logs/*
+!logs/.gitkeep
+
+# Data
+data/raw/*
+data/temp/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/temp/.gitkeep
+
+# System
+.DS_Store
+Thumbs.db
+*.bak

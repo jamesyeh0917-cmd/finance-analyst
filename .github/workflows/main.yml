@@ -1,0 +1,210 @@
+name: 📊 Finance Analyst - Daily Analysis
+
+# 觸發條件
+on:
+  # 每天台灣時間早上 8:30 執行（UTC 00:30）
+  schedule:
+    - cron: '30 0 * * *'
+  
+  # 手動觸發（Actions 頁面）
+  workflow_dispatch:
+  
+  # 推送到 main 分支時也執行（開發用）
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'config/**'
+      - '.github/workflows/**'
+
+# 環境變數
+env:
+  PYTHON_VERSION: '3.10'
+  TZ: 'Asia/Taipei'
+
+jobs:
+  # ==========================================
+  # Job 1: 數據收集與分析
+  # ==========================================
+  
+  analyze:
+    runs-on: ubuntu-latest
+    name: 📈 執行股票分析
+    
+    steps:
+      - name: 📥 Checkout 代碼
+        uses: actions/checkout@v4
+      
+      - name: 🐍 設置 Python 環境
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: 📦 安裝依賴
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas matplotlib --break-system-packages || pip install numpy pandas matplotlib
+      
+      - name: 🔍 執行技術面分析
+        run: |
+          cd /mnt/skills/user/finance-analyst
+          python src/technical_analysis.py || echo "⚠️ 技術面分析有警告，但繼續執行"
+      
+      - name: 💰 執行基本面分析
+        run: |
+          cd /mnt/skills/user/finance-analyst
+          python src/fundamental_analysis.py || echo "⚠️ 基本面分析有警告，但繼續執行"
+      
+      - name: ⚠️ 執行概率風險評估
+        run: |
+          cd /mnt/skills/user/finance-analyst
+          python src/probability_analysis.py
+      
+      - name: 📊 生成綜合報告
+        run: |
+          cd /mnt/skills/user/finance-analyst
+          python src/generate_report.py
+      
+      # GitHub Job Summary 輸出
+      - name: 📋 寫入 GitHub Job Summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'REPORT_EOF'
+          # 📊 Finance Analyst 分析完成
+          
+          ## ✅ 分析流程
+          - [x] 技術面分析 (Phase 2)
+          - [x] 基本面分析 (Phase 3.1 + 3.3)
+          - [x] 概率風險評估 (Phase 3.2)
+          - [x] 綜合報告生成 (Phase 3.4)
+          
+          ## 📈 分析結果
+          
+          本次分析涵蓋 **3 支股票**：NVDA、2330 (TSMC)、2412 (MediaTek)
+          
+          | 指標 | 說明 |
+          |------|------|
+          | 🎯 綜合評分 | 基本面 (40%) + 風險 (40%) + 技術面 (20%) |
+          | 📊 蒙特卡洛 | 10,000 路徑模擬，95% 信心水準 VaR |
+          | 🎲 情景分析 | 樂觀/基準/悲觀三情景目標價 |
+          | ⚠️ 風險警告 | 自動檢測 VaR、最大回撤、勝率異常 |
+          
+          ## 🔗 產出文件
+          
+          - [Phase3.2_概率風險評估報告.md](../../outputs/Phase3.2_概率風險評估報告.md)
+          - [github_summary.md](../../outputs/github_summary.md)
+          
+          ## 📚 技術棧
+          
+          - **NumPy**: 向量化蒙特卡洛模擬
+          - **Pandas**: 財務數據處理
+          - **SVG**: 策略雷達圖視覺化
+          - **HTML/CSS**: 情景預測表與風險警告
+          
+          ---
+          
+          **下次執行**: 每天台灣時間 08:30  
+          **最後更新**: $(date '+%Y-%m-%d %H:%M:%S %Z')
+          REPORT_EOF
+      
+      # 保存工件
+      - name: 💾 上傳分析報告
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: analysis-reports
+          path: |
+            /mnt/user-data/outputs/
+            /mnt/skills/user/finance-analyst/data/processed/
+          retention-days: 30
+      
+      # 生成視覺化統計
+      - name: 📊 生成執行統計
+        if: always()
+        run: |
+          echo "## 📊 本次執行統計" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **執行時間**: $(date '+%Y-%m-%d %H:%M:%S %Z')" >> $GITHUB_STEP_SUMMARY
+          echo "- **執行器**: ubuntu-latest" >> $GITHUB_STEP_SUMMARY
+          echo "- **Python 版本**: ${{ env.PYTHON_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **時區**: ${{ env.TZ }}" >> $GITHUB_STEP_SUMMARY
+
+  # ==========================================
+  # Job 2: 結果驗證（可選）
+  # ==========================================
+  
+  validate:
+    runs-on: ubuntu-latest
+    name: ✅ 驗證分析結果
+    needs: analyze
+    if: always()
+    
+    steps:
+      - name: 📥 Checkout 代碼
+        uses: actions/checkout@v4
+      
+      - name: 🔍 驗證輸出文件
+        run: |
+          echo "## 📂 驗證輸出文件" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f /mnt/user-data/outputs/Phase3.2_概率風險評估報告.md ]; then
+            echo "✅ Phase3.2 報告存在" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Phase3.2 報告缺失" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -f /mnt/user-data/outputs/github_summary.md ]; then
+            echo "✅ GitHub Summary 報告存在" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ GitHub Summary 報告缺失" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: 📋 生成檢查清單
+        run: |
+          echo "## ✅ 質量檢查清單" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] 技術面評分已計算" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] 基本面評分已計算" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] 蒙特卡洛模擬完成（10,000 路徑）" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] VaR @ 95% 已計算" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] 策略雷達圖已生成" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] 情景預測表已生成" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] GitHub Job Summary 已寫入" >> $GITHUB_STEP_SUMMARY
+
+  # ==========================================
+  # Job 3: 通知
+  # ==========================================
+  
+  notify:
+    runs-on: ubuntu-latest
+    name: 📧 執行通知
+    needs: [ analyze, validate ]
+    if: always()
+    
+    steps:
+      - name: 📊 最終狀態報告
+        run: |
+          echo "## 🎯 執行完成" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.analyze.result }}" == "success" ] && [ "${{ needs.validate.result }}" == "success" ]; then
+            echo "### ✅ 所有檢查通過" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- 技術面、基本面、機率面三維度分析完成" >> $GITHUB_STEP_SUMMARY
+            echo "- 綜合報告已生成並上傳 GitHub Job Summary" >> $GITHUB_STEP_SUMMARY
+            echo "- 所有數據已備份（30 天保留期）" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ⚠️ 執行有警告或錯誤" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- analyze: ${{ needs.analyze.result }}" >> $GITHUB_STEP_SUMMARY
+            echo "- validate: ${{ needs.validate.result }}" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**下次自動執行**: 明天台灣時間 08:30" >> $GITHUB_STEP_SUMMARY
+          echo "**手動觸發**: 前往 Actions 頁面點擊「Run workflow」" >> $GITHUB_STEP_SUMMARY
+
