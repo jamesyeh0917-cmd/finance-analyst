@@ -48,22 +48,22 @@ jobs:
       
       - name: 🔍 執行技術面分析
         run: |
-          cd /mnt/skills/user/finance-analyst
+          
           python src/technical_analysis.py || echo "⚠️ 技術面分析有警告，但繼續執行"
       
       - name: 💰 執行基本面分析
         run: |
-          cd /mnt/skills/user/finance-analyst
+         
           python src/fundamental_analysis.py || echo "⚠️ 基本面分析有警告，但繼續執行"
       
       - name: ⚠️ 執行概率風險評估
         run: |
-          cd /mnt/skills/user/finance-analyst
+         
           python src/probability_analysis.py
       
       - name: 📊 生成綜合報告
         run: |
-          cd /mnt/skills/user/finance-analyst
+          
           python src/generate_report.py
       
       # GitHub Job Summary 輸出
@@ -110,7 +110,7 @@ jobs:
       
       # 保存工件
       - name: 💾 上傳分析報告
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: analysis-reports
